@@ -234,7 +234,7 @@ class FollowStreamer(object):
                 break;
 
         opt = {
-            "name": "Default scraper " + str(fid),
+            "name": "Follow scraper " + str(fid),
             "oauth": token,
             "filter": {
                 "id": fid,
@@ -250,6 +250,70 @@ class FollowStreamer(object):
             log.msg("Error adding stream %s: %r, " % (fid, json.dumps(opt)))
         else:
             log.msg("Unknown status of stream %s: %r, " % (fid, json.dumps(opt)))
+
+
+def get_data():
+    try:
+        settings = read_settings("nba-settings.json")
+        db_string = "host='{host}' dbname='{dbname}' user='{user}' \
+                    password='{password}'".format(
+                        password = settings["database"]["password"],
+                        user = settings["database"]["username"],
+                        dbname = settings["database"]["name"],
+                        host = settings["database"]["host"],
+                        port = settings["database"]["port"])
+        tweet_table = settings["database"]["tweet_table"]
+        SQL = '''SELECT count(*)
+            FROM {rel_tweet}
+            GROUP BY timestamp::date, EXTRACT(hour FROM timestamp)
+            ORDER BY timestamp::date, EXTRACT(hour FROM timestamp)
+            '''.format(rel_tweet=tweet_table)
+        con = psycopg2.connect(db_string)
+        cur = con.cursor()
+        cur.execute(SQL)
+        recs = cur.fetchall()
+        counts = [rec[0] for rec in recs]
+        con.close()
+        return counts
+    except Exception:
+        log.msg("Error, get_data: %s" % traceback.format_exc())
+        return {"error" : True}
+
+def get_collected():
+    try:
+        resp = {
+            "total": 0,
+            "geo": 0
+            }
+        settings = read_settings("nba-settings.json")
+        db_string = "host='{host}' dbname='{dbname}' user='{user}' \
+                    password='{password}'".format(
+                        password = settings["database"]["password"],
+                        user = settings["database"]["username"],
+                        dbname = settings["database"]["name"],
+                        host = settings["database"]["host"],
+                        port = settings["database"]["port"])
+        tweet_table = settings["database"]["tweet_table"]
+        con = psycopg2.connect(db_string)
+        cur = con.cursor()
+
+        SQL = '''SELECT count(*)
+            FROM {rel_tweet}'''.format(rel_tweet=tweet_table)
+        cur.execute(SQL)
+        recs = cur.fetchall()
+        resp["total"] = recs[0][0]
+
+        SQL = '''SELECT count(*)
+            FROM {rel_tweet}
+            WHERE geo <> 'NULL' '''.format(rel_tweet=tweet_table)
+        cur.execute(SQL)
+        recs = cur.fetchall()
+        resp["geo"] = recs[0][0]
+        con.close()
+        return resp
+    except Exception:
+        log.msg("Error, get_collected: %s" % traceback.format_exc())
+        return {"error" : True}
 
 
 class NbaAPI(resource.Resource):
@@ -269,6 +333,12 @@ class NbaAPI(resource.Resource):
                 st2 = FollowStreamer()
                 st2.stream()
                 return "done"
+            elif request.path == "/data/":
+                response = get_data()
+                return json.dumps(response)
+            elif request.path == "/collected/":
+                response = get_collected()
+                return json.dumps(response)
 
             elif request.path == "/ping/":
                 return "pong"
@@ -293,12 +363,19 @@ class NbaAPI(resource.Resource):
 
 
 def restart_default():
-    st1 = DefaultStreamer()
-    st1.stream()
+    try:
+        st1 = DefaultStreamer()
+        st1.stream()
+    except Exception:
+        log.msg("Error, restart default: %s" % traceback.format_exc())
+
 
 def restart_follow():
-    st2 = FollowStreamer()
-    st2.stream()
+    try:
+        st2 = FollowStreamer()
+        st2.stream()
+    except Exception:
+        log.msg("Error, restart follow: %s" % traceback.format_exc())
 
 
 

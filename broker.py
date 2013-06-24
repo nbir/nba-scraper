@@ -36,8 +36,10 @@ def read_settings(filepath="broker-settings.json"):
 class BrokerAPI(resource.Resource):
     isLeaf = True
 
-    def __init__(self, settings, scrapy_settings):
+    def __init__(self):
         resource.Resource.__init__(self)
+        settings = read_settings("broker-settings.json")
+        scrapy_settings = read_settings("scrapy-settings.json")
         self.accounts_file = settings["csv"]["filename"]
         self.scrapy_url = "http://%s:%d" % (scrapy_settings["api"]["host"], scrapy_settings["api"]["port"])
 
@@ -77,11 +79,13 @@ class BrokerAPI(resource.Resource):
         alltok = self._get_all_tokens()
         usedtok = self._get_used_tokens()
         available = {
+            "total": len(alltok),
             "available": len(alltok),
             "used" : 0,
             }
         for key in usedtok:
             if key in alltok: available["used"] += 1
+        available["available"] -= available["used"]
         return available
 
     def render_GET(self, request):
@@ -177,7 +181,7 @@ if __name__ == "__main__":
     sys.stdout.write(MSG)
     log.startLogging(log_file)
 
-    api = BrokerAPI(settings, scrapy_settings)
+    api = BrokerAPI()
     site = server.Site(api)
     reactor.listenTCP(api_port, site)
     reactor.run()

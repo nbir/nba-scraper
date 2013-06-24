@@ -106,8 +106,6 @@ Requires: `scrapy-settings.json`
 
 ### HTTP API
 
-
-
 * ### Restart streams
 	
 	Force restart bothe default and follow streams.
@@ -124,6 +122,45 @@ Requires: `scrapy-settings.json`
 	
 	```
 	done
+	```
+
+* ### Get data
+	
+	Returns list of hourly tweet counts so far.
+	
+	URI: `/data/`
+	
+	GET parameters:
+	
+	```
+	none
+	```
+	
+	Response:
+	
+	```
+	[1, 2, 3, 4, 5]
+	```
+	
+* ### Get collected
+	
+	Returns total tweets collected and total geo-tweets.
+	
+	URI: `/collected/`
+	
+	GET parameters:
+	
+	```
+	none
+	```
+	
+	Response:
+	
+	```
+	{
+		"total": 0,
+		"geo": 0
+    }
 	```
 	
 * ### Ping
