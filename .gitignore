@@ -88,4 +88,4 @@ scrapy-settings.json
 broker-settings.json
 nba-settings.json
 accounts.csv
-default_streams.csv
+# default_streams.csv
