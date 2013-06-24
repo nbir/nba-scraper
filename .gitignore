@@ -24,7 +24,7 @@
 # Other files #
 ###############
 *.pdf
-*.csv
+# *.csv
 
 # Logs and databases #
 ######################
