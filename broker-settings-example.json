@@ -1,0 +1,10 @@
+{
+    "api": {
+        "port": 8001,
+        "host": "localhost",
+        "log": null
+    },
+    "csv": {
+        "filename": "<filename containing accounts .csv>"
+    }
+}

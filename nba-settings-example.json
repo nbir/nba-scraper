@@ -1,0 +1,28 @@
+{
+    "api": {
+        "port": 8002,
+        "host": "localhost",
+        "log": null
+    },
+    "default": {
+        "interval": 60,
+        "filename" : "<filename containing default streams keywords .csv>"
+    },
+    "follow": {
+        "interval": 60,
+        "limit": 50,
+        "id_from": 11,
+        "min_tweets": 10
+    },
+    "database": {
+        "name": "scrapy-db",
+        "username": "scrapy",
+        "password": "0123456789",
+        "host": "localhost",
+        "port": 5432,
+        "commit_delay": 300,
+        "limit_table": "limits",
+        "tweet_table": "tweets",
+        "jsons_table": "tweet_json"
+    }
+}
