@@ -1,7 +1,12 @@
 pytz
 psycopg2
+requests
+oauth2
 pyOpenSSL
 twisted
+sqlalchemy
 anyjson
 argparse
 python-dateutil
+git+git://github.com/geoalchemy/geoalchemy2.git
+git+git://github.com/zaycev/twforce.git
