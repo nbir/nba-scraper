@@ -92,6 +92,7 @@ class BrokerAPI(resource.Resource):
         try:
             #log.msg("Handle request: %s" % request.path, logLevel=logging.DEBUG)
             request.setHeader("Content-Type", "application/json")
+            request.setHeader("Access-Control-Allow-Origin", "*")
 
             if request.path == "/get/":
                 response = self.get_nused_token()
