@@ -107,9 +107,3 @@ class HoopsHype():
                     break
 
         return ids
-
-
-if __name__ == "__main__":
-    hoops = HoopsHype()
-    print json.dumps(hoops.get())
-

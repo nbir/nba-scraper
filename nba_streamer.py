@@ -18,6 +18,7 @@ import traceback
 import anyjson as json
 
 from twisted.python import log
+from hoopshype import HoopsHype
 from twisted.internet import reactor
 from twisted.web import server, resource
 from twisted.internet.task import LoopingCall
@@ -28,7 +29,7 @@ global LOG_FILE
 VERSION = "1.0"
 
 
-def read_settings(filepath="scrapy-settings.json"):
+def read_settings(filepath="nba-settings.json"):
     json_file = open(filepath, "r")
     settings = json.loads(json_file.read())
     json_file.close()
@@ -191,7 +192,7 @@ class FollowStreamer(object):
         while(True):
             text_response = requests.get("%s/list/" % self.scrapy_url).text
             response = json.loads(text_response)
-            if len(response) == 0 or "filter" in response[0]:
+            if type(response) is list:
                 break;
         fids = [int(stream["filter"]["id"]) for stream in response]
         return fids
@@ -208,6 +209,137 @@ class FollowStreamer(object):
         user_ids = [str(rec[0]) for rec in recs if rec[1] > self.min_tweets]
         con.close()
         return user_ids
+
+    def _stop_stream(self, fid):
+        text_response = requests.get("%s/list/" % self.scrapy_url).text
+        slist = json.loads(text_response)
+        tokens = []
+        user_ids = []
+        for stream in slist:
+            if stream["filter"]["id"] == fid:
+                tokens.append(stream["token"])
+                if "follow" in stream["filter"]:
+                    user_ids.extend(stream["filter"]["follow"])
+
+        scrapy_params = {"data": json.dumps(tokens)}
+        status = json.loads(requests.get("%s/remove/" % self.scrapy_url, params=scrapy_params).text)
+        log.msg("Stopped stream %s: %r, " % (fid, json.dumps(status)))
+
+        return user_ids
+
+    def _launch_stream(self, fid, follow):
+        while(True):
+            text_response = requests.get("%s/get/" % self.broker_url).text
+            token = json.loads(text_response)
+            if "token" in token and "secret" in token:
+                break;
+
+        opt = {
+            "name": "Follow scraper " + str(fid),
+            "oauth": token,
+            "filter": {
+                "id": fid,
+                "follow": follow,
+            }
+        }
+        scrapy_params = {"data": json.dumps([opt])}
+        status = json.loads(requests.get("%s/add/" % self.scrapy_url, 
+                                        params=scrapy_params).text)
+        if "success" in status:
+            log.msg("Added stream %s: %r, " % (fid, json.dumps(opt)))
+        elif "error" in status:
+            log.msg("Error adding stream %s: %r, " % (fid, json.dumps(opt)))
+        else:
+            log.msg("Unknown status of stream %s: %r, " % (fid, json.dumps(opt)))
+
+
+class HoopshypeStreamer(object):
+
+    class Status(object):
+
+        CONNECTED = 1
+        CONNECTING = 0
+        FAILED = -1
+
+    def __init__(self):
+        settings = read_settings("nba-settings.json")
+        scrapy_settings = read_settings("scrapy-settings.json")
+        broker_settings = read_settings("broker-settings.json")
+        self.id_from = settings["follow"]["id_from"]
+        self.limit = settings["follow"]["limit"]
+        self.min_tweets = settings["follow"]["min_tweets"]
+        self.scrapy_url = "http://%s:%d" % (scrapy_settings["api"]["host"], 
+                                            scrapy_settings["api"]["port"])
+        self.broker_url = "http://%s:%d" % (broker_settings["api"]["host"], 
+                                            broker_settings["api"]["port"])
+
+    def stream(self):
+        log.msg("Hoopshype streamer started.")
+        following, streams = self._get_following_list()
+        hoops = HoopsHype()
+        user_ids = hoops.get()
+        user_ids = [uid for uid in user_ids if uid not in following]
+        hcount = int(open('hoopshype.txt','rb').read())
+        hcount += len(user_ids)
+        open('hoopshype.txt','wb').write(str(hcount))
+
+        if len(streams) > 0:
+        # stop and rebuild ALL streams with follow > limit
+            for fid, count in streams.items():
+                if count > self.limit:
+                    user_ids.extend(self._stop_stream(fid))
+                    del streams[fid]
+
+        if len(user_ids) > 0:
+            if len(streams) > 0:
+                # stop and rebuild ONlY ONE streams with follow < limit
+                fid, count = streams.items().pop()
+                user_ids.extend(self._stop_stream(fid))
+
+            splits = []
+            while(True):
+                # prepare splits of size <= limit
+                if len(user_ids) <= self.limit:
+                    splits.append(user_ids[:self.limit])
+                    break
+                splits.append(user_ids[:self.limit])
+                user_ids = user_ids[self.limit:]
+
+            used_fids = self._get_used_fids()
+            new_fids = range(self.id_from, 100)
+            new_fids.reverse()
+            for fid in used_fids:
+                if fid >= self.id_from: new_fids.remove(fid)
+            for follow in splits:
+                fid = str(new_fids.pop())
+                self._launch_stream(fid, follow)
+
+    def _get_following_list(self):
+        streams = {}
+        following = []
+        while(True):
+            text_response = requests.get("%s/list/" % self.scrapy_url).text
+            response = json.loads(text_response)
+            if type(response) is list:
+                break;
+        for stream in response:
+            if int(stream["filter"]["id"]) >= self.id_from \
+            and "follow" in stream["filter"]:
+                following.extend(stream["filter"]["follow"])
+                l = len(stream["filter"]["follow"])
+                if l != self.limit:
+                    streams[stream["filter"]["id"]] = l
+
+        return following, streams
+
+    def _get_used_fids(self):
+        while(True):
+            text_response = requests.get("%s/list/" % self.scrapy_url).text
+            response = json.loads(text_response)
+            if type(response) is list:
+                break;
+        fids = [int(stream["filter"]["id"]) for stream in response]
+        return fids
 
     def _stop_stream(self, fid):
         text_response = requests.get("%s/list/" % self.scrapy_url).text
@@ -341,6 +473,14 @@ class NbaAPI(resource.Resource):
                 response = get_collected()
                 return json.dumps(response)
 
+            elif request.path == "/hoops_users/":
+                hcount = int(open('hoopshype.txt','rb').read())
+                return str(hcount)
+            elif request.path == "/restart_hoops/":
+                st3 = HoopshypeStreamer()
+                st3.stream()
+                return "done"
+
             elif request.path == "/ping/":
                 return "pong"
             elif request.path == "/log/":
@@ -378,6 +518,12 @@ def restart_follow():
     except Exception:
         log.msg("Error, restart follow: %s" % traceback.format_exc())
 
+def restart_hoopshype():
+    try:
+        st3 = HoopshypeStreamer()
+        st3.stream()
+    except Exception:
+        log.msg("Error, restart hoopshype: %s" % traceback.format_exc())    
 
 
 MSG = \
@@ -445,6 +591,9 @@ if __name__ == "__main__":
 
     lc2 = LoopingCall(lambda: restart_follow())
     lc2.start(settings["follow"]["interval"])
+
+    lc3 = LoopingCall(lambda: restart_hoopshype())
+    lc3.start(settings["hoopshype"]["interval"])
     
     reactor.run()
 
