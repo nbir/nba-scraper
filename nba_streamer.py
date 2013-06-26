@@ -15,6 +15,7 @@ import argparse
 import requests
 import psycopg2
 import traceback
+import multiprocessing
 import anyjson as json
 
 from twisted.python import log
@@ -275,9 +276,9 @@ class HoopshypeStreamer(object):
 
     def stream(self):
         log.msg("Hoopshype streamer started.")
-        following, streams = self._get_following_list()
         hoops = HoopsHype()
         user_ids = hoops.get()
+        following, streams = self._get_following_list()
         user_ids = [uid for uid in user_ids if uid not in following]
         hcount = int(open('hoopshype.txt','rb').read())
         hcount += len(user_ids)
@@ -523,7 +524,11 @@ def restart_hoopshype():
         st3 = HoopshypeStreamer()
         st3.stream()
     except Exception:
-        log.msg("Error, restart hoopshype: %s" % traceback.format_exc())    
+        log.msg("Error, restart hoopshype: %s" % traceback.format_exc())
+
+def restart_hoopshype_async():
+    pool = multiprocessing.Pool(processes=1)
+    pool.apply_async(restart_hoopshype)
 
 
 MSG = \
@@ -592,7 +597,7 @@ if __name__ == "__main__":
     lc2 = LoopingCall(lambda: restart_follow())
     lc2.start(settings["follow"]["interval"])
 
-    lc3 = LoopingCall(lambda: restart_hoopshype())
+    lc3 = LoopingCall(lambda: restart_hoopshype_async())
     lc3.start(settings["hoopshype"]["interval"])
     
     reactor.run()
