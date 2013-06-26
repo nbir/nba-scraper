@@ -1,8 +1,8 @@
 1,nba
 2,nbadraft,nba draft
-3,Boston Celtics,#Celtics,@Celtics,New York Knicks,#Knicks,@NYKnicks,Philadelphia 76ers,#76ers,@Sixers,New Jersey Nets,#Nets,@NetsBasketball,Toronto Raptors,#Raptors,@Raptors
-4,Chicago Bulls,#Bulls,@ChicagoBulls,Indiana Pacers,#Pacers,@Pacers,Milwaukee Bucks,#Bucks,@Bucks,Detroit Pistons,#Pistons,@DetroitPistons,Cleveland Cavaliers,#Cavs,#Cavaliers,@Cavs
-5,Miami Heat,#MiamiHeat,@MiamiHEAT,Orlando Magic,#OrlandoMagic,#Magic,@Orlando_Magic,Atlanta Hawks,#Hawks,#ATLHawks,@Atlanta_Hawks,Charlotte Bobcats,#Bobcats,@Bobcats,Washington Wizards,#Wizards,@WashWizards
-6,Oklahoma City,#okcthunder,#OklahomaCityThunder,@OKCThunder,Denver Nuggets,#Nuggets,@DenverNuggets,Portland Trailblazers,#TrailBlazers,#Blazers,@PDXTrailBlazers,Utah Jazz,#UtahJazz,@Utah_Jazz,Minnesota Timberwolves,#TWolves,#Timberwolves,@MNTimberwolves
-7,LA Lakers,#Lakers,@Lakers,Phoenix Suns,#Suns,@PhoenixSuns,Golden State Warriors,#GSWarriors,@Warriors,L.A. Clippers,#Clippers,@LAClippers,Sacramento Kings,#NBAKings,@SacramentoKings
+3,Boston Celtics,Celtics,New York Knicks,Knicks,NYKnicks,Philadelphia 76ers,76ers,@Sixers,New Jersey Nets,#Nets,@NetsBasketball,Toronto Raptors,Raptors
+4,Chicago Bulls,#Bulls,@ChicagoBulls,Indiana Pacers,#Pacers,@Pacers,Milwaukee Bucks,#Bucks,@Bucks,Detroit Pistons,#Pistons,@DetroitPistons,Cleveland Cavaliers,Cavs,#Cavaliers
+5,Miami Heat,#MiamiHeat,@MiamiHEAT,Orlando Magic,#OrlandoMagic,#Magic,@Orlando_Magic,Atlanta Hawks,#Hawks,#ATLHawks,@Atlanta_Hawks,Charlotte Bobcats,Bobcats,Washington Wizards,#Wizards,@WashWizards
+6,Oklahoma City,#okcthunder,#OklahomaCityThunder,@OKCThunder,Denver Nuggets,#Nuggets,@DenverNuggets,Portland Trailblazers,TrailBlazers,#Blazers,@PDXTrailBlazers,Utah Jazz,#UtahJazz,@Utah_Jazz,Minnesota Timberwolves,#TWolves,Timberwolves,@MNTimberwolves
+7,LA Lakers,Lakers,Phoenix Suns,#Suns,@PhoenixSuns,Golden State Warriors,#GSWarriors,@Warriors,L.A. Clippers,Clippers,@LAClippers,Sacramento Kings,#NBAKings,@SacramentoKings
 8,San Antonio Spurs,#GoSpursGo,#Spurs,@Spurs,Dallas Mavericks,#Mavs,@DallasMavs,New Orleans Hornets,#Hornets,@Hornets,Memphis Grizzlies,#Grizzlies,@memgrizz,Houston Rockets,#Rockets,@HoustonRockets

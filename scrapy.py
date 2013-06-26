@@ -152,13 +152,13 @@ class ScraperState(object):
         self.connector = connect_api(self.factory)
 
     def add_tweet(self, tweet):
-        user_id = str(tweet["user"]["id"])
-        if "follow" not in self.filter \
-        or user_id in self.filter.get("follow", []):
-            self.received += 1
-            self.total_received += 1
-            self.cache.append((self.token.key, self.filter_id, tweet))
-            self.last_received = datetime.datetime.now()
+        #user_id = str(tweet["user"]["id"])
+        #if "follow" not in self.filter \
+        #or user_id in self.filter.get("follow", []):
+        self.received += 1
+        self.total_received += 1
+        self.cache.append((self.token.key, self.filter_id, tweet))
+        self.last_received = datetime.datetime.now()
 
     def add_limit(self, limit):
         limit_value = 0
